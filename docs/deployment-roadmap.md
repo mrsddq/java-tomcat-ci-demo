@@ -4,9 +4,11 @@
 
 - Maven WAR project
 - JSP landing page
+- JSON health endpoint
 - Jenkins pipeline skeleton
 - Tomcat deployment target pattern
 - GitHub Actions Maven build
+- Jenkins artifact archiving
 
 ## Next Deployment Features
 

@@ -42,6 +42,7 @@
     <h1>My App Demo</h1>
     <p>This Java web application is packaged as <code>my-app-demo.war</code> and ready for Tomcat deployment.</p>
     <p>Build it with <code>mvn clean package</code>.</p>
+    <p>Health check: <code>/health.jsp</code></p>
   </main>
 </body>
 </html>

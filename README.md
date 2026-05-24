@@ -1,11 +1,12 @@
 # My App Demo
 
-A minimal Java web application packaged as a WAR file for deployment to a servlet container such as Apache Tomcat.
+A minimal Java web application packaged as a WAR file for deployment to a servlet container such as Apache Tomcat, with a Jenkins pipeline and JSON health endpoint.
 
 ## Project Structure
 
 ```text
 src/main/webapp/
+  health.jsp
   index.jsp
   WEB-INF/web.xml
 Jenkinsfile
@@ -30,6 +31,11 @@ The WAR file is created at:
 target/my-app-demo.war
 ```
 
+## Endpoints
+
+- `/` renders the demo landing page.
+- `/health.jsp` returns a small JSON health response.
+
 ## Jenkins Deployment
 
 The Jenkins pipeline builds the WAR and deploys it from the `main` branch. Configure these Jenkins credentials before enabling deployment:
@@ -44,6 +50,7 @@ The repository has a complete baseline structure for a Maven Java web applicatio
 
 - Maven WAR build
 - JSP landing page
+- JSON health endpoint
 - Jakarta web descriptor
 - Jenkins pipeline
 - README
@@ -53,6 +60,7 @@ The repository has a complete baseline structure for a Maven Java web applicatio
 
 - GitHub Actions Maven build workflow
 - Jenkins deployment skeleton
+- Jenkins artifact archiving
 - deployment roadmap in [docs/deployment-roadmap.md](docs/deployment-roadmap.md)
 
 This is best framed as a Java/Tomcat/CI deployment practice project.

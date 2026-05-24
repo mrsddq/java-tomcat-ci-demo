@@ -27,7 +27,10 @@ pipeline {
 
         stage('Deploy to Tomcat') {
             when {
-                branch 'main'
+                allOf {
+                    branch 'main'
+                    expression { return env.DEPLOY_TARGET?.trim() }
+                }
             }
             steps {
                 sshagent(['tomcat-credentials']) {
@@ -38,6 +41,12 @@ pipeline {
                     '''
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true
         }
     }
 }
