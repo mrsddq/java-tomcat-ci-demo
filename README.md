@@ -48,3 +48,11 @@ The repository has a complete baseline structure for a Maven Java web applicatio
 - Jenkins pipeline
 - README
 - `.gitignore`
+
+## Quality Signals
+
+- GitHub Actions Maven build workflow
+- Jenkins deployment skeleton
+- deployment roadmap in [docs/deployment-roadmap.md](docs/deployment-roadmap.md)
+
+This is best framed as a Java/Tomcat/CI deployment practice project.
