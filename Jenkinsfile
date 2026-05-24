@@ -1,4 +1,4 @@
-currentBuild.displayName = "tomcat-build - "+currentBuild.number
+currentBuild.displayName = "my-app-demo - ${currentBuild.number}"
 
 pipeline {
     agent any
@@ -6,25 +6,35 @@ pipeline {
     tools {
         maven 'MVN_HOME'
     }
+
+    environment {
+        APP_WAR = 'target/my-app-demo.war'
+        DEPLOY_TARGET = credentials('tomcat-deploy-target')
+    }
+
     stages {
-        stage('SCM-checkout') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', credentialsId: 'git-credentials', url: 'https://github.com/mrsddq/my-app-demo.git'
-                }
-            }
-
-        stage('maven-package') {
-            steps {
-                sh 'mvn clean compile package'
             }
         }
-        stage('Tomcat-Deployment') {
+
+        stage('Package') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            when {
+                branch 'main'
+            }
             steps {
                 sshagent(['tomcat-credentials']) {
                     sh '''
-                        scp -o StrictHostKeyChecking=no target/my-app-demo.war ec2-user@13.60.253.80:/opt/tomcat/webapps/
-                        ssh ec2-user@13.60.253.80 /opt/tomcat/bin/shutdown.sh
-                        ssh ec2-user@13.60.253.80 /opt/tomcat/bin/startup.sh
+                        scp -o StrictHostKeyChecking=no "$APP_WAR" "$DEPLOY_TARGET:/opt/tomcat/webapps/"
+                        ssh "$DEPLOY_TARGET" /opt/tomcat/bin/shutdown.sh || true
+                        ssh "$DEPLOY_TARGET" /opt/tomcat/bin/startup.sh
                     '''
                 }
             }
