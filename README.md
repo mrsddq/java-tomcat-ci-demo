@@ -62,5 +62,6 @@ The repository has a complete baseline structure for a Maven Java web applicatio
 - Jenkins deployment skeleton
 - Jenkins artifact archiving
 - deployment roadmap in [docs/deployment-roadmap.md](docs/deployment-roadmap.md)
+- demo deployment checklist in [docs/DEMO_DEPLOYMENT_CHECKLIST.md](docs/DEMO_DEPLOYMENT_CHECKLIST.md)
 
 This is best framed as a Java/Tomcat/CI deployment practice project.
