@@ -1,4 +1,4 @@
-# My App Demo
+# Java Tomcat CI Demo
 
 A minimal Java web application packaged as a WAR file for deployment to a servlet container such as Apache Tomcat, with a Jenkins pipeline and JSON health endpoint.
 
@@ -28,7 +28,7 @@ mvn clean package
 The WAR file is created at:
 
 ```text
-target/my-app-demo.war
+target/java-tomcat-ci-demo.war
 ```
 
 ## Endpoints

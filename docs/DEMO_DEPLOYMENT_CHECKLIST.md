@@ -11,7 +11,7 @@ mvn clean package
 ## Evidence To Capture
 
 - Maven build output.
-- Generated WAR path under `target/`.
+- Generated WAR path under `target/java-tomcat-ci-demo.war`.
 - Tomcat deployment screenshot or log excerpt.
 - `/health.jsp` JSON response.
 - Jenkins pipeline screenshot with archived artifact.

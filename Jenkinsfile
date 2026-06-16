@@ -1,4 +1,4 @@
-currentBuild.displayName = "my-app-demo - ${currentBuild.number}"
+currentBuild.displayName = "java-tomcat-ci-demo - ${currentBuild.number}"
 
 pipeline {
     agent any
@@ -8,14 +8,14 @@ pipeline {
     }
 
     environment {
-        APP_WAR = 'target/my-app-demo.war'
+        APP_WAR = 'target/java-tomcat-ci-demo.war'
         DEPLOY_TARGET = credentials('tomcat-deploy-target')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'git-credentials', url: 'https://github.com/mrsddq/my-app-demo.git'
+                git branch: 'main', credentialsId: 'git-credentials', url: 'https://github.com/mrsddq/java-tomcat-ci-demo.git'
             }
         }
 
