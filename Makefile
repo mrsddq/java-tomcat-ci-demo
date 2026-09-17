@@ -1,7 +1,5 @@
-﻿.PHONY: verify clean
-
+.PHONY: verify clean
 verify:
-	git status --short
-
+	mvn --batch-mode --no-transfer-progress clean verify
 clean:
-	git status --short
+	mvn --batch-mode --no-transfer-progress clean

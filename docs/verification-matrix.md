@@ -1,10 +1,14 @@
-# Verification Matrix
+# Verification matrix
 
-| Layer | Command or check | Expected signal |
-| --- | --- | --- |
-| Build | `mvn clean package` | WAR artifact builds successfully |
-| Unit/smoke | Add JUnit or servlet smoke test | Basic endpoint behavior is verified |
-| CI | GitHub Actions workflow | Build runs on push and pull request |
-| Deploy | Tomcat deploy notes | WAR path and context root are clear |
+| Layer | Verification |
+| --- | --- |
+| Compile/package | Java 17 compilation and WAR packaging in `mvn clean verify` |
+| Actual runtime | Failsafe deploys the built WAR to ephemeral loopback Tomcat 10.1 |
+| HTTP contract | Health JSON, cache header, legacy alias, HEAD, unsupported POST |
+| Web packaging | Landing page and unknown-route response |
+| CI | Same Maven verify lifecycle on pushes and PRs; report artifact retained |
+| External deployment | Opt-in Jenkins main build; requires separately verified SSH host keys |
 
-Local note: Maven must be installed before this project can be fully verified on a fresh machine.
+Automated local integration tests do not prove a remote Tomcat rollout or a
+Jenkins installation. The pipeline requires the plugins/tools described in the
+project README; deployment is disabled by default.

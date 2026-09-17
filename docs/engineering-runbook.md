@@ -1,39 +1,11 @@
-﻿# Engineering Runbook
+# WAR verification and diagnosis
 
-## Repository Profile
+Use JDK 17 and Maven 3.9+, then run `mvn clean verify`. Inspect
+`target/failsafe-reports/` on failure. Tests launch the packaged WAR on a random
+loopback port; no external Tomcat or credentials are required. A missing servlet
+mapping, wrong context, or invalid WAR must fail HTTP assertions.
 
-- Repository: $repoName
-- Classification: Documentation/content repository
-- Tracked files: 9
-- Python files: 0
-- JavaScript/TypeScript files: 0
-- Notebooks: 0
-- Terraform files: 0
-
-## Setup
-
-``bash
-No package install step is required for the tracked source.
-``
-
-## Verification
-
-``bash
-Review tracked content and run repository-specific checks.
-git status --short
-``
-
-## Release Hygiene
-
-- Keep generated outputs, caches, local datasets, virtual environments, and dependency folders out of git.
-- Prefer deterministic commands over manual notebook or console-only steps.
-- Document required secrets and environment variables instead of committing them.
-- Keep Dockerfiles, CI workflows, and tests aligned with the actual project stack.
-- Treat learning or reference material honestly as reference material; do not present it as production service code unless it has service-grade tests, deployment, and operations docs.
-
-## Maintenance Checklist
-
-- Review dependencies quarterly.
-- Run tests before every push.
-- Confirm git status --short is clean before packaging.
-- Include .git only when an external submission explicitly requires repository history.
+For a configured manual deployment, use the README's Jenkins credential names
+and keep host-key verification enabled. The optional upload is not a rollout
+health check; validate the remote context and retain a previous WAR for rollback.
+No deployment is attempted by GitHub Actions or ordinary Jenkins builds.

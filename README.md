@@ -1,67 +1,65 @@
 # Java Tomcat CI Demo
 
-A minimal Java web application packaged as a WAR file for deployment to a servlet container such as Apache Tomcat, with a Jenkins pipeline and JSON health endpoint.
+A Java 17 servlet packaged as a WAR, with an HTTP-tested liveness endpoint and a
+Jenkins pipeline that keeps deployment disabled unless explicitly requested.
 
-## Project Structure
+## Build and test
 
-```text
-src/main/webapp/
-  health.jsp
-  index.jsp
-  WEB-INF/web.xml
-Jenkinsfile
-pom.xml
-```
-
-## Requirements
-
-- Java 17 or newer
-- Maven 3.9 or newer
-- Tomcat 10 or another Jakarta Servlet 6 compatible runtime
-
-## Build
+Requires JDK 17 and Maven 3.9+. Deployment targets Apache Tomcat **10.1.x**
+(Jakarta Servlet 6.0), not the older Tomcat 10.0/Servlet 5 line.
 
 ```bash
-mvn clean package
+mvn --batch-mode --no-transfer-progress clean verify
 ```
 
-The WAR file is created at:
+Maven packages `target/java-tomcat-ci-demo.war`, then Failsafe starts an embedded
+Tomcat 10.1 container on a random loopback port and tests that exact WAR. It checks
+JSON status/content type/cache headers, the legacy URL, HEAD/POST behavior,
+landing-page packaging, and missing routes. The container stops after tests.
+Reports are in `target/failsafe-reports/` and uploaded by GitHub Actions.
 
-```text
-target/java-tomcat-ci-demo.war
-```
+`mvn package` alone does not execute the packaged-WAR integration tests; use
+`verify` locally and in CI. No cloud account or external service is needed.
 
-## Endpoints
+## HTTP contract
 
-- `/` renders the demo landing page.
-- `/health.jsp` returns a small JSON health response.
+Under the deployed context `/java-tomcat-ci-demo`:
 
-## Jenkins Deployment
+| Method and path | Result |
+| --- | --- |
+| `GET /` | Static landing page |
+| `GET /health` | 200 JSON: `{"status":"ok","application":"java-tomcat-ci-demo"}` |
+| `GET /health.jsp` | Compatibility alias for the same servlet |
+| `HEAD /health` | 200 headers, no body |
+| `POST /health` | 405 Method Not Allowed |
 
-The Jenkins pipeline builds the WAR and deploys it from the `main` branch. Configure these Jenkins credentials before enabling deployment:
+Health responses include `Cache-Control: no-store`. This endpoint reports process
+liveness only; it does not establish database or downstream readiness. The WAR
+contains the compiled servlet, static HTML, and Servlet 6.0 descriptor. Container
+and test dependencies are not bundled as application dependencies.
 
-- `git-credentials`
-- `tomcat-credentials`
-- `tomcat-deploy-target`
+## Jenkins
 
-## Status
+Use a Multibranch Pipeline with JDK 17, Maven tool `MVN_HOME`, and the standard
+Pipeline, Credentials Binding, SSH Agent, and JUnit plugins. The pipeline checks
+out the requested SCM revision (including PR revisions), verifies the WAR, and
+archives reports and artifacts. Ordinary builds require no deployment secrets.
 
-The repository has a complete baseline structure for a Maven Java web application:
+Deployment runs only when the branch is `main` **and** the build's `DEPLOY`
+parameter is explicitly enabled. Configure these only on a trusted deployment job:
 
-- Maven WAR build
-- JSP landing page
-- JSON health endpoint
-- Jakarta web descriptor
-- Jenkins pipeline
-- README
-- `.gitignore`
+- `tomcat-credentials`: SSH private-key credential for a restricted deployment account.
+- `tomcat-deploy-target`: secret text in `user@hostname` form.
+- `tomcat-known-hosts`: secret file containing independently verified SSH host keys.
 
-## Quality Signals
+The optional step uploads the WAR to `/opt/tomcat/webapps/` with strict host-key
+verification. It does not restart the container or claim a successful health
+rollout. Configure Tomcat's deployment behavior, permissions, and an operational
+rollback/health procedure before enabling it. Never expose deployment credentials
+to untrusted PR jobs.
 
-- GitHub Actions Maven build workflow
-- Jenkins deployment skeleton
-- Jenkins artifact archiving
-- deployment roadmap in [docs/deployment-roadmap.md](docs/deployment-roadmap.md)
-- demo deployment checklist in [docs/DEMO_DEPLOYMENT_CHECKLIST.md](docs/DEMO_DEPLOYMENT_CHECKLIST.md)
+## Scope
 
-This is best framed as a Java/Tomcat/CI deployment practice project.
+This is a small CI and servlet integration example, not a production service.
+There are no user accounts, database, authentication, business APIs, or high
+availability mechanisms. A live Tomcat installation is not created by CI.
