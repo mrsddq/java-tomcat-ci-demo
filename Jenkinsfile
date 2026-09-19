@@ -1,5 +1,3 @@
-currentBuild.displayName = "java-tomcat-ci-demo - ${currentBuild.number}"
-
 pipeline {
     agent any
 
@@ -7,21 +5,31 @@ pipeline {
         maven 'MVN_HOME'
     }
 
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout(time: 15, unit: 'MINUTES')
+    }
+
+    parameters {
+        booleanParam(name: 'DEPLOY', defaultValue: false,
+            description: 'Explicitly opt in to deploying a verified main-branch WAR.')
+    }
+
     environment {
         APP_WAR = 'target/java-tomcat-ci-demo.war'
-        DEPLOY_TARGET = credentials('tomcat-deploy-target')
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout requested revision') {
             steps {
-                git branch: 'main', credentialsId: 'git-credentials', url: 'https://github.com/mrsddq/java-tomcat-ci-demo.git'
+                checkout scm
             }
         }
 
-        stage('Package') {
+        stage('Verify packaged application') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn --batch-mode --no-transfer-progress clean verify'
             }
         }
 
@@ -29,16 +37,26 @@ pipeline {
             when {
                 allOf {
                     branch 'main'
-                    expression { return env.DEPLOY_TARGET?.trim() }
+                    expression { return params.DEPLOY }
                 }
             }
             steps {
-                sshagent(['tomcat-credentials']) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no "$APP_WAR" "$DEPLOY_TARGET:/opt/tomcat/webapps/"
-                        ssh "$DEPLOY_TARGET" /opt/tomcat/bin/shutdown.sh || true
-                        ssh "$DEPLOY_TARGET" /opt/tomcat/bin/startup.sh
-                    '''
+                withCredentials([
+                    string(credentialsId: 'tomcat-deploy-target', variable: 'DEPLOY_TARGET'),
+                    file(credentialsId: 'tomcat-known-hosts', variable: 'KNOWN_HOSTS')
+                ]) {
+                    sshagent(['tomcat-credentials']) {
+                        sh '''
+                            set -eu
+                            printf '%s' "$DEPLOY_TARGET" | grep -Eq '^[A-Za-z_][A-Za-z0-9_-]*@[A-Za-z0-9][A-Za-z0-9.-]*$' || {
+                                echo 'Deployment target must have the form user@hostname.' >&2
+                                exit 2
+                            }
+                            scp -o BatchMode=yes -o StrictHostKeyChecking=yes \\
+                                -o UserKnownHostsFile="$KNOWN_HOSTS" \\
+                                "$APP_WAR" "$DEPLOY_TARGET:/opt/tomcat/webapps/java-tomcat-ci-demo.war"
+                        '''
+                    }
                 }
             }
         }
@@ -46,9 +64,8 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true
+            junit testResults: 'target/failsafe-reports/TEST-*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true, fingerprint: true
         }
     }
 }
-
-
